@@ -30,7 +30,7 @@ async function loadCategories() {
                 categoriaSelect.appendChild(option);
             });
         } else {
-            // Si no hay categorías, se crea una opción por defecto
+            // Si no hay categorías, se crea una opción por defecto en el select
             const optionDefault = document.createElement("option");
             optionDefault.value = "default";
             optionDefault.disabled = true;
@@ -52,26 +52,32 @@ async function loadExpenses() {
         const token = getToken();
 
         const expenses = await apiFetch(endpoint, method, null, token);
-        let i = 0;
-        expenses.forEach(expense => {
 
+        if (!expenses && expenses.length > 0) {
+            expenses.forEach(expense => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <span>${expense.title}</span>
+                    <span>$ ${expense.amount}</span>
+                    <span>${expense.date}</span>
+    
+                    <button class="edit">Editar</button>
+                    <button class="delete">eliminar</button>
+                `;
+    
+                li.querySelector(".edit").addEventListener("click", () => editExpense(expense));
+                li.querySelector(".delete").addEventListener("click", () => deleteExpense(expense));
+    
+                list.appendChild(li);
+            });
+
+        }else{
             const li = document.createElement("li");
-            li.innerHTML = `
-                <span>${expense.title}</span>
-                <span>$ ${expense.amount}</span>
-                <span>${expense.date}</span>
-
-                <button class="edit">Editar</button>
-                <button class="delete">eliminar</button>
-            `;
-
-
-            li.querySelector(".edit").addEventListener("click", () => editExpense(expense));
-            li.querySelector(".delete").addEventListener("click", () => deleteExpense(expense));
+            li.innerHTML = `<span align="center">no hay gastos asociados</span>`;
 
             list.appendChild(li);
+        }
 
-        });
 
     } catch (error) {
         console.error("Error al cargar los gastos:", error);

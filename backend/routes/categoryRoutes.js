@@ -76,4 +76,23 @@ router.get("/", auth, async (req, res) => {
     }
 })
 
+// eliminar categoria
+
+router.delete("/:id", auth, async (req, res) => {
+    try {
+        const category = await Category.findByIdAndDelete({
+            _id: req.params.id,
+            user: req.user.id
+        });
+
+        if (!category) {
+            return res.status(404).json({ error: "Categoria no encontrada" });
+        }
+
+        res.status(200).json({ message: "Cateria eliminada correctamente" });
+    } catch (err) {
+        return res.status(500).json({error: err.message})
+    }
+})
+
 module.exports = router;

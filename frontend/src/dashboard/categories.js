@@ -21,20 +21,26 @@ async function loadCategories() {
         const categories = await apiFetch(endpoint, method, null, token);
         list.innerHTML = ""; 
 
-        categories.forEach((category) => {
-            // Crear un li para cada categoria
+        if (categories && categories.length > 0) {
+                categories.forEach((category) => {
+                    // Crear un li para cada categoria
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <span>${category.name}</span>
+                        <button class="edit">Editar</button>
+                        <button class="delete">eliminar</button>
+                    `;
+                
+                    // Darle funcionalidad al boton editar
+                    li.querySelector(".edit").addEventListener("click", () => editCategory(category)); 
+                    li.querySelector(".delete").addEventListener("click", () => deleteCategory(category)); 
+                    list.appendChild(li);
+                });
+        } else {
             const li = document.createElement("li");
-            li.innerHTML = `
-                <span>${category.name}</span>
-                <button class="edit">
-                    Editar
-                </button>
-            `;
-
-            // Darle funcionalidad al boton editar
-            li.querySelector("button").addEventListener("click", () => editCategory(category)); 
+            li.innerHTML = `<span align="center">No existen categorias asociadas</span>`;
             list.appendChild(li);
-        });
+        }
     } catch (error) {
         console.error("Error al cargar categorías:", error);
         alert("No se pudieron cargar las categorías")
@@ -47,6 +53,25 @@ function editCategory(category) {
     btnSave.style.display = "none";
     btnUpdate.style.display = "inline-block";
     btnCancel.style.display = "inline-block";
+}
+
+async function deleteCategory(category) {
+    try {
+        if (confirm("Seguro que deseas eliminar esta categoria?")) {
+            const endpoint = `categories/${category._id}`;
+            const method = "DELETE";
+            const token = getToken();
+    
+            await apiFetch(endpoint, method, null, token);
+    
+            alert("Categoria eliminada correctamente")
+
+            loadCategories();
+        }
+    } catch (error) {
+        console.error(error);
+        alert(`Error al intentar eliminar la Categoria: ${error.message}`)
+    }
 }
 
 async function saveCategory() {
