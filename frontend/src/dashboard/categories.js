@@ -12,38 +12,44 @@ const btnUpdate = document.getElementById("updateCategory");
 const btnCancel = document.getElementById("cancelUpdate");
 const list = document.getElementById("categoryList");
 
-async function loadCategories() {
+async function getCategories() {
     try {
         const endpoint = "categories";
         const method = "GET";
         const token = getToken();
 
         const categories = await apiFetch(endpoint, method, null, token);
-        list.innerHTML = ""; 
 
-        if (categories && categories.length > 0) {
-                categories.forEach((category) => {
-                    // Crear un li para cada categoria
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                        <span>${category.name}</span>
-                        <button class="edit">Editar</button>
-                        <button class="delete">eliminar</button>
-                    `;
-                
-                    // Darle funcionalidad al boton editar
-                    li.querySelector(".edit").addEventListener("click", () => editCategory(category)); 
-                    li.querySelector(".delete").addEventListener("click", () => deleteCategory(category)); 
-                    list.appendChild(li);
-                });
-        } else {
-            const li = document.createElement("li");
-            li.innerHTML = `<span align="center">No existen categorias asociadas</span>`;
-            list.appendChild(li);
-        }
+        loadCategories(categories)
+
     } catch (error) {
         console.error("Error al cargar categorías:", error);
         alert("No se pudieron cargar las categorías")
+    }
+}
+
+function loadCategories(categoryList) {
+    list.innerHTML = ""; 
+
+    if (categoryList && categoryList.length > 0) {
+        categoryList.forEach((category) => {
+            // Crear un li para cada categoria
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <span>${category.name}</span>
+                <button class="edit">Editar</button>
+                <button class="delete">eliminar</button>
+            `;
+        
+            // Darle funcionalidad al boton editar
+            li.querySelector(".edit").addEventListener("click", () => editCategory(category)); 
+            li.querySelector(".delete").addEventListener("click", () => deleteCategory(category)); 
+            list.appendChild(li);
+        });
+    } else {
+        const li = document.createElement("li");
+        li.innerHTML = `<span align="center">No existen categorias asociadas</span>`;
+        list.appendChild(li);
     }
 }
 
@@ -66,7 +72,7 @@ async function deleteCategory(category) {
     
             alert("Categoria eliminada correctamente")
 
-            loadCategories();
+            getCategories();
         }
     } catch (error) {
         console.error(error);
@@ -85,7 +91,7 @@ async function saveCategory() {
         await apiFetch("categories/new", "POST", { name }, token);
         alert("Categoría guardada correctamente.");
         form.reset();
-        loadCategories();
+        getCategories();
     } catch (error) {
         console.error("Error al guardar la categoría:", error.message);
         alert("No se pudo guardar la categoría.");
@@ -107,7 +113,7 @@ async function updateCategory() {
         btnSave.style.display = "inline-block";
         btnUpdate.style.display = "none";
         btnCancel.style.display = "none";
-        loadCategories();
+        getCategories();
     } catch (error) {
         console.error("Error al actualizar la categoría:", error.message);
         alert("No se pudo actualizar la categoría.");
@@ -121,7 +127,41 @@ function cancelUpdate() {
     form.reset();
 }
 
-document.addEventListener("DOMContentLoaded", loadCategories);
+async function searchCategory(categories, searchText) {
+    try {
+        const categoriesFiltered = categories.filter(category => category.name.includes(searchText))
+
+        loadCategories(categoriesFiltered);
+        
+    } catch (error) {
+        console.error(error);
+        alert(`Error al buscar la categoria: ${error.message}`)
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const buscar = document.getElementById("searchInput");
+    buscar.placeholder="buscar categoria por nombre";
+
+    getCategories();
+});
+
+document.getElementById("searchInput").addEventListener("input", async function () {
+    const endpoint = "categories";
+    const method = "GET";
+    const token = getToken();
+    const categories = await apiFetch(endpoint, method, null, token);
+
+    let searchValue = this.value
+
+    if (searchValue !== "") {
+        searchCategory(categories, searchValue)
+    } else {
+        getCategories();
+    }
+
+})
+
 document.getElementById("logout").addEventListener("click", logout)
 btnSave.addEventListener("click", saveCategory);
 btnUpdate.addEventListener("click", updateCategory);

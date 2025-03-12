@@ -3,7 +3,7 @@ import { getToken } from "../utils/auth.js";
 import { logout } from "../utils/logout.js";
 
 // referencias del DOM
-
+const list = document.getElementById("expenseList");
 const form = document.getElementById("expenseForm")
 const expenseId = document.getElementById("expenseId");
 const tituloInput = document.getElementById("expenseTitle");
@@ -42,9 +42,7 @@ async function loadCategories() {
     }
 }
 
-async function loadExpenses() {
-    const list = document.getElementById("expenseList");
-    list.innerHTML = ""; 
+async function getExpenses() {
 
     try {
         const endpoint = "expenses/";
@@ -53,8 +51,18 @@ async function loadExpenses() {
 
         const expenses = await apiFetch(endpoint, method, null, token);
 
-        if (!expenses && expenses.length > 0) {
-            expenses.forEach(expense => {
+        loadExpenses(expenses)
+
+    } catch (error) {
+        console.error("Error al cargar los gastos:", error);
+        alert("No se pudieron cargar los gastos")
+    }
+}
+
+async function loadExpenses(expenseList) {
+        list.innerHTML = ""; 
+        if (expenseList && expenseList.length > 0) {
+            expenseList.forEach(expense => {
                 const li = document.createElement("li");
                 li.innerHTML = `
                     <span>${expense.title}</span>
@@ -77,12 +85,6 @@ async function loadExpenses() {
 
             list.appendChild(li);
         }
-
-
-    } catch (error) {
-        console.error("Error al cargar los gastos:", error);
-        alert("No se pudieron cargar los gastos")
-    }
 }
 
 async function saveExpense() {
@@ -102,13 +104,10 @@ async function saveExpense() {
         const body = { title, amount, category, date}
         const token = getToken();
 
-        console.log(endpoint, method, body, token);
-        
-
         await apiFetch(endpoint, method, body, token);
         alert("Gasto guardado correctamente.")
         form.reset();
-        loadExpenses();
+        getExpenses();
     } catch (error) {
         console.log(error);
         alert(`ocurrio un error inesperado ${error.message}`)
@@ -138,7 +137,7 @@ async function deleteExpense(expense){
             await apiFetch(endpoint,method, null, token);
 
             alert("Gasto eliminado correctamente");
-            loadExpenses();
+            getExpenses();
         }
     } catch (error) {
         console.error(error);
@@ -173,7 +172,7 @@ async function updateExpense() {
         btnUpdate.style.display = "none";
         btnCancel.style.display = "none";
 
-        loadExpenses();
+        getExpenses();
     } catch (error) {
         console.error("Error al actualizar la categoría:", error.message);
         alert("No se pudo actualizar la categoría.");
@@ -187,10 +186,41 @@ function cancelUpdate() {
     form.reset();
 }
 
+async function searchExpense(expenseList, textSearch) {
+    try {
+        const expenseFiltered = expenseList.filter(expense => expense.title.includes(textSearch))
+
+        loadExpenses(expenseFiltered)
+    } catch (error) {
+        console.error(error);
+        alert(`error al buscar el gasto: ${error.message}`)
+    }
+}
+
 document.addEventListener("DOMContentLoaded", async function() {
-    loadExpenses();
+    const buscar = document.getElementById("searchInput");
+    buscar.placeholder="buscar gasto por titulo";
+
+    getExpenses();
     loadCategories();
 });
+
+document.getElementById("searchInput").addEventListener("input", async function() {
+    const endpoint = "expenses/";
+    const method = "GET";
+    const token = getToken();
+    const expenses = await apiFetch(endpoint, method, null, token);
+
+    let searchValue = this.value;
+
+    if (searchValue !== "") {
+        setTimeout(()=>{
+            searchExpense(expenses, searchValue);
+        },300)
+    } else {
+        loadExpenses(expenses);
+    }
+})
 
 document.getElementById("logout").addEventListener("click", logout);
 document.getElementById("saveExpense").addEventListener("click", saveExpense);

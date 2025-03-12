@@ -76,6 +76,21 @@ router.get("/", auth, async (req, res) => {
     }
 })
 
+// buscar categoria
+router.get("/:name", auth, async (req, res) => {
+    try {
+        const category = await Category.find({name: req.params.name})
+
+        if (!category) {
+            return res.status(400).json({ error: "No se encuentran categorias" });
+        }
+
+        res.json(category);
+    } catch (err) {
+        return res.status(500).json({error: err.message})
+    }
+})
+
 // eliminar categoria
 
 router.delete("/:id", auth, async (req, res) => {
