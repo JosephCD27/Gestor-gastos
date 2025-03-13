@@ -10,6 +10,7 @@
     <div class="container">
       <nav class="navbar">
         <ul>
+          <li><p id="userName"></p></li>
           <li><a href="categories.html" id="categoriesLink">Categorías</a></li>
           <li><a href="expenses.html" id="expensesLink">Gastos</a></li>
           <li><input id="searchInput" type="text"></li>
@@ -20,16 +21,15 @@
 
       <!-- Formulario para agregar o editar categorías -->
       <div class="form-container">
-        <form id="categoryForm">
+        <form id="categoryForm" class="categoryForm">
           <input type="hidden" id="categoryId" value="" />
           <!-- Campo oculto para el ID -->
-          <label for="categoryName">Nombre de la categoría:</label>
-          <input
-            type="text"
-            id="categoryName"
-            placeholder="Escribe una categoría"
-            required
-          />
+          <div class="form-group">
+            <label for="categoryName">Nombre de la categoría:</label>
+            <input  type="text" id="categoryName" placeholder="Escribe una categoría" required />
+          </div>
+
+
           <div class="buttons">
             <button type="button" id="saveCategory">Guardar</button>
             <button type="button" id="updateCategory" style="display: none">
@@ -45,7 +45,13 @@
       <!-- Listado de categorías -->
       <div class="list-container">
         <h2>Categorías existentes</h2>
-        <ul id="categoryList">
+        <table>
+          <tr class="titulos-container">
+            <th class="titulos-lista">nombre</th>
+            <th class="titulos-lista">acciones</th>
+          </tr>
+        </table>
+        <ul id="categoryList" class="categoryList">
           <!-- Aquí se agregarán dinámicamente las categorías -->
         </ul>
       </div>

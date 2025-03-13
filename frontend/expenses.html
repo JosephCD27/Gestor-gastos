@@ -20,42 +20,35 @@
 
       <!-- Formulario de gastos -->
       <div class="form-container">
-        <form id="expenseForm">
+        <form class="expenseForm" id="expenseForm">
           <input type="hidden" id="expenseId" value="" />
-          <!-- Campo oculto para el ID -->
-
-          <label for="expenseTitle">Título del gasto:</label>
-          <input
-            type="text"
-            id="expenseTitle"
-            placeholder="Escribe el título"
-            required
-          />
-
-          <label for="expenseAmount">Monto:</label>
-          <input
-            type="number"
-            id="expenseAmount"
-            placeholder="Escribe el monto"
-            required
-          />
-
-          <label for="expenseCategory">Categoría:</label>
-          <select id="expenseCategory" required>
-            <option value="" selected disabled>Selecciona una categoría</option>
-          </select>
-
-          <label for="expenseDate">Fecha:</label>
-          <input type="date" id="expenseDate" />
-
+        
+          <div class="form-group">
+            <label for="expenseTitle">Título del gasto:</label>
+            <input type="text" id="expenseTitle" placeholder="Escribe el título" required />
+          </div>
+        
+          <div class="form-group">
+            <label for="expenseAmount">Monto:</label>
+            <input type="number" id="expenseAmount" placeholder="Escribe el monto" required />
+          </div>
+        
+          <div class="form-group">
+            <label for="expenseCategory">Categoría:</label>
+            <select id="expenseCategory" required>
+              <option value="" selected disabled>Selecciona una categoría</option>
+            </select>
+          </div>
+        
+          <div class="form-group">
+            <label for="expenseDate">Fecha:</label>
+            <input type="date" id="expenseDate" />
+          </div>
+        
           <div class="buttons">
             <button type="button" id="saveExpense">Guardar</button>
-            <button type="button" id="updateExpense" style="display: none">
-              Actualizar
-            </button>
-            <button type="button" id="cancelUpdate" style="display: none">
-              Cancelar
-            </button>
+            <button type="button" id="updateExpense" style="display: none">Actualizar</button>
+            <button type="button" id="cancelUpdate" style="display: none">Cancelar</button>
           </div>
         </form>
       </div>
@@ -63,7 +56,15 @@
       <!-- Listado de gastos -->
       <div class="list-container">
         <h2>Gastos registrados</h2>
-        <ul id="expenseList">
+        <table>
+          <tr class="titulos-container">
+            <th class="titulos-lista">Titulo</th>
+            <th class="titulos-lista">Monto</th>
+            <th class="titulos-lista">Fecha</th>
+            <th class="titulos-lista">acciones</th>
+          </tr>
+        </table>
+        <ul id="expenseList" class="expenseList">
           <!-- Aquí se agregarán dinámicamente los gastos -->
         </ul>
       </div>

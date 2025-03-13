@@ -92,10 +92,9 @@ h2 {
   margin-bottom: 20px;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.expenseForm {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
 }
 
 form label {
@@ -117,7 +116,12 @@ select:focus {
   border-color: #007bff;
   outline: none;
 }
-
+.form-group{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px;
+}
 .buttons {
   display: flex;
   gap: 10px;
@@ -143,7 +147,7 @@ button:hover {
 
 .list-container li {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
   padding: 10px;
   border: 1px solid #ddd;
@@ -182,4 +186,25 @@ button:hover {
 #searchInput{
   width: 90%;
   height: 5px;
+}
+
+table{
+  width: 100%;
+}
+.titulos-container{
+  width: 100%;
+  text-align: center;
+}
+
+.titulos-lista{
+  color: #333;
+}
+
+.categoryList, .expenseList{
+  max-height: 20rem;
+  overflow-y: scroll;
+}
+
+#userName{
+  color: #fff;
 }

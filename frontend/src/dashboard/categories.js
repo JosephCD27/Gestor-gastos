@@ -1,5 +1,5 @@
 import { apiFetch } from "../utils/api.js";
-import { getToken } from "../utils/auth.js";
+import { getToken,verifyUserLogged } from "../utils/auth.js";
 import { logout } from "../utils/logout.js";
 
 // referencias a elementos (DOM)
@@ -140,6 +140,9 @@ async function searchCategory(categories, searchText) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    verifyUserLogged();
+    
+    const user = document.getElementById("userName");
     const buscar = document.getElementById("searchInput");
     buscar.placeholder="buscar categoria por nombre";
 

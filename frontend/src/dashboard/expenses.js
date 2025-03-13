@@ -1,5 +1,5 @@
 import { apiFetch } from "../utils/api.js";
-import { getToken } from "../utils/auth.js";
+import { getToken, verifyUserLogged } from "../utils/auth.js";
 import { logout } from "../utils/logout.js";
 
 // referencias del DOM
@@ -198,6 +198,8 @@ async function searchExpense(expenseList, textSearch) {
 }
 
 document.addEventListener("DOMContentLoaded", async function() {
+    verifyUserLogged();
+
     const buscar = document.getElementById("searchInput");
     buscar.placeholder="buscar gasto por titulo";
 
