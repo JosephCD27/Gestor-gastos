@@ -1,26 +1,55 @@
 import { apiFetch } from "../utils/api.js";
-import { getToken, verifyUserLogged } from "../utils/auth.js";
+import { getToken,verifyLogin, getInfoToken } from "../utils/auth.js";
 import { logout } from "../utils/logout.js";
 
 // referencias del DOM
+
 const list = document.getElementById("expenseList");
 const form = document.getElementById("expenseForm")
 const expenseId = document.getElementById("expenseId");
 const tituloInput = document.getElementById("expenseTitle");
+const userName = document.getElementById("userName");
+const searchInput = document.getElementById("searchInput");
 const montoInput = document.getElementById("expenseAmount");
 const categoriaSelect = document.getElementById("expenseCategory");
 const fechaInput = document.getElementById("expenseDate");
 const btnSave = document.getElementById("saveExpense");
 const btnUpdate = document.getElementById("updateExpense");
 const btnCancel = document.getElementById("cancelUpdate");
+const logoutBtn = document.getElementById("logout");
+
+const token = getToken();
+
+const API_ENDPOINTS = {
+    categories: "categories",
+    expenses: "expenses",
+    newExpense: "expenses/new",
+    searchExpense: (id)=>`expenses/${id}`,
+    users: (id) => `users/${id}`
+};
+
+const API_METHODS = {
+    post:"POST",
+    get: "GET",
+    put: "PUT",
+    delete: "DELETE",
+};
+
+async function getUser(id) {
+    try {
+        const users = await apiFetch(API_ENDPOINTS.users(id), API_METHODS.get, null, token);
+        
+        return users;
+    } catch (error) {
+        console.log(error);
+        alert(`Error encontrado: ${error}`);
+    }
+}
 
 async function loadCategories() {
     try {
-        const endpoint = "categories";
-        const method = "GET";
-        const token = getToken();
 
-        const categoryList = await apiFetch(endpoint, method, null, token);
+        const categoryList = await apiFetch(API_ENDPOINTS.categories, API_METHODS.get, null, token);
 
         if (categoryList && categoryList.length > 0) {
             categoryList.forEach(category => {
@@ -38,6 +67,7 @@ async function loadCategories() {
             categoriaSelect.appendChild(optionDefault);
         }
     } catch (error) {
+        alert(`Error encontrado ${error.message}`);
         console.error("Error al cargar las categorías:", error);
     }
 }
@@ -45,11 +75,7 @@ async function loadCategories() {
 async function getExpenses() {
 
     try {
-        const endpoint = "expenses/";
-        const method = "GET";
-        const token = getToken();
-
-        const expenses = await apiFetch(endpoint, method, null, token);
+        const expenses = await apiFetch(API_ENDPOINTS.expenses, API_METHODS.get, null, token);
 
         loadExpenses(expenses)
 
@@ -63,11 +89,12 @@ async function loadExpenses(expenseList) {
         list.innerHTML = ""; 
         if (expenseList && expenseList.length > 0) {
             expenseList.forEach(expense => {
+                const fecha = expense.date.split("T")[0];
                 const li = document.createElement("li");
                 li.innerHTML = `
                     <span>${expense.title}</span>
                     <span>$ ${expense.amount}</span>
-                    <span>${expense.date}</span>
+                    <span>${fecha}</span>
     
                     <button class="edit">Editar</button>
                     <button class="delete">eliminar</button>
@@ -99,15 +126,16 @@ async function saveExpense() {
             return;
         }
 
-        const endpoint = "expenses/new";
-        const method = "POST";
         const body = { title, amount, category, date}
-        const token = getToken();
 
-        await apiFetch(endpoint, method, body, token);
-        alert("Gasto guardado correctamente.")
+        const response = await apiFetch(API_ENDPOINTS.newExpense, API_METHODS.post, body, token);
+
+        if (response) {
+            alert("Gasto guardado correctamente.")
+        }
         form.reset();
         getExpenses();
+
     } catch (error) {
         console.log(error);
         alert(`ocurrio un error inesperado ${error.message}`)
@@ -127,16 +155,15 @@ function editExpense(expense){
 }
 
 async function deleteExpense(expense){
-    const idExpense = expense._id;
-
     try {
         if (confirm("Estas seguro que deseas eliminar este gasto?")) {
-            const endpoint = `expenses/${idExpense}`;
-            const method = "DELETE";
-            const token = getToken();
-            await apiFetch(endpoint,method, null, token);
 
-            alert("Gasto eliminado correctamente");
+            const response = await apiFetch(API_ENDPOINTS.searchExpense(expense._id),API_METHODS.delete, null, token);
+
+            if (response) {
+                alert("Gasto eliminado correctamente");
+            }
+
             getExpenses();
         }
     } catch (error) {
@@ -157,22 +184,17 @@ async function updateExpense() {
         return;
     }
     try {
-        const endpoint = `expenses/${id}`;
-        const method = "PUT";
         const body = { title, amount, category, date};
-        const token = getToken();
 
+        const response = await apiFetch(API_ENDPOINTS.searchExpense(id), API_METHODS.put, body, token);
 
-        await apiFetch(endpoint, method, body, token);
-        alert("Categoría actualizada correctamente.");
+        if (response) {
+            alert("Categoría actualizada correctamente.");
+        }
 
-        form.reset();
-
-        btnSave.style.display = "inline-block";
-        btnUpdate.style.display = "none";
-        btnCancel.style.display = "none";
-
+        cancelUpdate();
         getExpenses();
+
     } catch (error) {
         console.error("Error al actualizar la categoría:", error.message);
         alert("No se pudo actualizar la categoría.");
@@ -198,20 +220,20 @@ async function searchExpense(expenseList, textSearch) {
 }
 
 document.addEventListener("DOMContentLoaded", async function() {
-    verifyUserLogged();
 
-    const buscar = document.getElementById("searchInput");
-    buscar.placeholder="buscar gasto por titulo";
+    verifyLogin();
+    const tokenInfo = getInfoToken(token);
+    const userData = await getUser(tokenInfo.id);
+
+    userName.textContent = `Usuario: ${userData.name}`;
+    searchInput.placeholder="buscar gasto por titulo";
 
     getExpenses();
     loadCategories();
 });
 
 document.getElementById("searchInput").addEventListener("input", async function() {
-    const endpoint = "expenses/";
-    const method = "GET";
-    const token = getToken();
-    const expenses = await apiFetch(endpoint, method, null, token);
+    const expenses = await apiFetch(API_ENDPOINTS.expenses, API_METHODS.get, null, token);
 
     let searchValue = this.value;
 
@@ -224,7 +246,7 @@ document.getElementById("searchInput").addEventListener("input", async function(
     }
 })
 
-document.getElementById("logout").addEventListener("click", logout);
-document.getElementById("saveExpense").addEventListener("click", saveExpense);
-document.getElementById("updateExpense").addEventListener("click", updateExpense);
-document.getElementById("cancelUpdate").addEventListener("click", cancelUpdate);
+logoutBtn.addEventListener("click", logout)
+btnSave.addEventListener("click", saveExpense);
+btnUpdate.addEventListener("click", updateExpense);
+btnCancel.addEventListener("click", cancelUpdate);

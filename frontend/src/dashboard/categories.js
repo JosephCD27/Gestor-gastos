@@ -41,6 +41,7 @@ async function getUser(id) {
         alert(`Error encontrado: ${error}`);
     }
 }
+
 async function getCategories() {
     try {
         const categories = await apiFetch(API_ENDPOINTS.categories, API_METHODS.get, null, token);
@@ -109,10 +110,14 @@ async function saveCategory() {
         return;
     }
     try {
-        await apiFetch(API_ENDPOINTS.newCategory, API_METHODS.post, { name }, token);
-        alert("Categoría guardada correctamente.");
-        form.reset();
-        getCategories();
+        const response = await apiFetch(API_ENDPOINTS.newCategory, API_METHODS.post, { name }, token);
+
+        if (response) {
+            alert("Categoría guardada correctamente.");
+            form.reset();
+            getCategories();
+        }
+
     } catch (error) {
         console.error("Error al guardar la categoría:", error.message);
         alert("No se pudo guardar la categoría.");
@@ -161,8 +166,8 @@ async function searchCategory(categories, searchText) {
 document.addEventListener("DOMContentLoaded",async function () {
 
     verifyLogin();
+
     const tokenInfo = getInfoToken(token);
-    
     const userData = await getUser(tokenInfo.id);
 
     userName.textContent = `Usuario: ${userData.name}`;
