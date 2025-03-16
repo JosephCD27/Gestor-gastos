@@ -1,43 +1,57 @@
 import { logout } from "./logout.js";
 
-// sacar el token del localstorage
+const TOKEN_KEY = "token";
+const LOGIN_URL = "login.html";
+
+// Obtener el token del localStorage
 export function getToken() {
-    return localStorage.getItem("token");
+    return localStorage.getItem(TOKEN_KEY);
 }
 
-// guardar el token del localstorage
+// Guardar el token en el localStorage
 export function setToken(token) {
-    localStorage.setItem("token", token);
+    localStorage.setItem(TOKEN_KEY, token);
 }
 
-// eliminar el token del localstorage
+// Eliminar el token del localStorage y sessionStorage
 export function clearToken() {
-    localStorage.removeItem("token"); // o el nombre que usas
-    sessionStorage.removeItem("token");
+    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
 }
 
-export function verifyUserLogged() {
+// Verificar si el usuario está logueado y si el token es válido/no expirado
+export function verifyLogin() {
     const token = getToken();
 
-  // 1. Si no hay token, redirige
+    // Si no hay token, redirige
     if (!token) {
         alert("No has iniciado sesión.");
-        logout(); 
-        window.location.href = "login.html"; 
-    }
-
-  // 2. Verificar si el token expiró 
-    const payloadBase64 = token.split(".")[1];
-    const payloadJson = atob(payloadBase64);
-    const payload = JSON.parse(payloadJson);
-
-    const now = Math.floor(Date.now() / 1000);
-
-    if (payload.exp && payload.exp < now) {
-        alert("Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.");
         logout();
-        window.location.href = "login.html";
+        window.location.href = LOGIN_URL;
         return;
     }
 
+    // Decodificar token
+    const payload = getInfoToken(token);
+
+    // Verificar que el token se haya decodificado correctamente y que no esté expirado
+    const now = Math.floor(Date.now() / 1000);
+    if (!payload || payload.exp < now) {
+        alert("Tu sesión ha expirado o el token es inválido. Por favor, vuelve a iniciar sesión.");
+        logout();
+        window.location.href = LOGIN_URL;
+    }
+}
+
+// decodificar la información del token
+export function getInfoToken(token) {
+    try {
+        const payloadBase64 = token.split(".")[1]; // Captura el payload codificado
+        const payloadJson = atob(payloadBase64); // Decodifica de Base64 a Json
+        const payload = JSON.parse(payloadJson); // Convierte el JSON a un objeto de js
+        return payload;
+    } catch (error) {
+        console.error("Error al decodificar el token:", error);
+        return null;
+    }
 }

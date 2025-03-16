@@ -1,5 +1,5 @@
 import { apiFetch } from "../utils/api.js";
-import { getToken,verifyUserLogged } from "../utils/auth.js";
+import { getToken,verifyLogin,getInfoToken } from "../utils/auth.js";
 import { logout } from "../utils/logout.js";
 
 // referencias a elementos (DOM)
@@ -11,14 +11,39 @@ const btnSave = document.getElementById("saveCategory");
 const btnUpdate = document.getElementById("updateCategory");
 const btnCancel = document.getElementById("cancelUpdate");
 const list = document.getElementById("categoryList");
+const userName = document.getElementById("userName");
+const searchInput = document.getElementById("searchInput");
+const logoutBtn = document.getElementById("logout");
 
+const token = getToken();
+
+const API_ENDPOINTS = {
+    categories: "categories",
+    newCategory: "categories/new",
+    searchCategory: (id)=>`categories/${id}`,
+    users: (id) => `users/${id}`
+};
+
+const API_METHODS = {
+    post:"POST",
+    get: "GET",
+    put: "PUT",
+    delete: "DELETE",
+};
+
+async function getUser(id) {
+    try {
+        const users = await apiFetch(API_ENDPOINTS.users(id), API_METHODS.get, null, token);
+        
+        return users;
+    } catch (error) {
+        console.log(error);
+        alert(`Error encontrado: ${error}`);
+    }
+}
 async function getCategories() {
     try {
-        const endpoint = "categories";
-        const method = "GET";
-        const token = getToken();
-
-        const categories = await apiFetch(endpoint, method, null, token);
+        const categories = await apiFetch(API_ENDPOINTS.categories, API_METHODS.get, null, token);
 
         loadCategories(categories)
 
@@ -64,11 +89,8 @@ function editCategory(category) {
 async function deleteCategory(category) {
     try {
         if (confirm("Seguro que deseas eliminar esta categoria?")) {
-            const endpoint = `categories/${category._id}`;
-            const method = "DELETE";
-            const token = getToken();
     
-            await apiFetch(endpoint, method, null, token);
+            await apiFetch(API_ENDPOINTS.searchCategory(category._id), API_METHODS.delete, null, token);
     
             alert("Categoria eliminada correctamente")
 
@@ -87,8 +109,7 @@ async function saveCategory() {
         return;
     }
     try {
-        const token = getToken();
-        await apiFetch("categories/new", "POST", { name }, token);
+        await apiFetch(API_ENDPOINTS.newCategory, API_METHODS.post, { name }, token);
         alert("Categoría guardada correctamente.");
         form.reset();
         getCategories();
@@ -106,14 +127,12 @@ async function updateCategory() {
         return;
     }
     try {
-        const token = getToken();
-        await apiFetch(`categories/${id}`, "PUT", { name }, token);
+        await apiFetch(API_ENDPOINTS.searchCategory(id), API_METHODS.put, { name }, token);
         alert("Categoría actualizada correctamente.");
-        form.reset();
-        btnSave.style.display = "inline-block";
-        btnUpdate.style.display = "none";
-        btnCancel.style.display = "none";
+
+        cancelUpdate()
         getCategories();
+
     } catch (error) {
         console.error("Error al actualizar la categoría:", error.message);
         alert("No se pudo actualizar la categoría.");
@@ -139,21 +158,22 @@ async function searchCategory(categories, searchText) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    verifyUserLogged();
+document.addEventListener("DOMContentLoaded",async function () {
+
+    verifyLogin();
+    const tokenInfo = getInfoToken(token);
     
-    const user = document.getElementById("userName");
-    const buscar = document.getElementById("searchInput");
-    buscar.placeholder="buscar categoria por nombre";
+    const userData = await getUser(tokenInfo.id);
+
+    userName.textContent = `Usuario: ${userData.name}`;
+    searchInput.placeholder="buscar categoria por nombre";
 
     getCategories();
 });
 
 document.getElementById("searchInput").addEventListener("input", async function () {
-    const endpoint = "categories";
-    const method = "GET";
-    const token = getToken();
-    const categories = await apiFetch(endpoint, method, null, token);
+    
+    const categories = await apiFetch(API_ENDPOINTS.categories, API_METHODS.get, null, token);
 
     let searchValue = this.value
 
@@ -162,10 +182,9 @@ document.getElementById("searchInput").addEventListener("input", async function 
     } else {
         getCategories();
     }
-
 })
 
-document.getElementById("logout").addEventListener("click", logout)
+logoutBtn.addEventListener("click", logout)
 btnSave.addEventListener("click", saveCategory);
 btnUpdate.addEventListener("click", updateCategory);
 btnCancel.addEventListener("click", cancelUpdate);

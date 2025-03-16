@@ -27,6 +27,7 @@ app.get("/",(req, res)=>{
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/categories", require("./routes/categoryRoutes"))
 app.use("/expenses", require("./routes/expenseRoutes"))
+app.use("/users", require("./routes/userRoutes"))
 
 // inicialización del servidor
 const PORT = process.env.PORT || 5000;
